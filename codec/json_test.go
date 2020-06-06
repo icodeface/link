@@ -1,7 +1,8 @@
-package codec
+package codec_test
 
 import (
 	"bytes"
+	"github.com/icodeface/link/codec"
 	"testing"
 
 	"github.com/icodeface/link"
@@ -17,8 +18,8 @@ type MyMessage2 struct {
 	Field2 string
 }
 
-func JsonTestProtocol() *JsonProtocol {
-	protocol := Json()
+func JsonTestProtocol() *codec.JsonProtocol {
+	protocol := codec.Json()
 	protocol.Register(MyMessage1{})
 	protocol.RegisterName("msg2", &MyMessage2{})
 	return protocol
@@ -75,6 +76,42 @@ func JsonTest(t *testing.T, protocol link.Protocol) {
 		t.Fatalf("message not match %v, %v", sendMsg1, recvMsg1)
 	}
 
+	// multi messages
+	for i := 0; i < 3; i++ {
+		err = codec.Send(&sendMsg1)
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = codec.Send(&sendMsg2)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	for i := 0; i < 3; i++ {
+		recvMsg1, err := codec.Receive()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, ok := recvMsg1.(*MyMessage1); !ok {
+			t.Fatalf("message type not match: %#v", recvMsg1)
+		}
+		if sendMsg1 != *(recvMsg1.(*MyMessage1)) {
+			t.Fatalf("message not match: %v, %v", sendMsg1, recvMsg1)
+		}
+
+		recvMsg2, err := codec.Receive()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, ok := recvMsg2.(*MyMessage2); !ok {
+			t.Fatalf("message type not match: %#v", recvMsg2)
+		}
+		if sendMsg2 != *(recvMsg2.(*MyMessage2)) {
+			t.Fatalf("message not match %v, %v", sendMsg1, recvMsg1)
+		}
+	}
+
 	sendMsg3 := map[string]MyMessage1{
 		"a": MyMessage1{"abc", 123},
 		"b": MyMessage1{"def", 456},
@@ -103,6 +140,7 @@ func JsonTest(t *testing.T, protocol link.Protocol) {
 	if recvMepLevel2["Field1"].(string) != "abc" {
 		t.Fatalf("map not match %v", recvMepLevel2)
 	}
+
 }
 
 func Test_Json(t *testing.T) {

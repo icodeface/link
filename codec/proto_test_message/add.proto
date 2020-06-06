@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.github.icodeface.link";
+option java_outer_classname = "AddProto";
+
+package proto_test_message;
+
+message AddReq {
+    int32 a = 1;
+    int32 b = 2;
+}
+
+message AddRsp {
+    int32 c = 1;
+}
+
+message MyMessage1 {
+	string field1 = 1;
+	int32 field2 = 2;
+}
+
+message MyMessage2 {
+	int32 field1 = 1;
+	string field2 = 2;
+}

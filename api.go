@@ -1,11 +1,14 @@
 package link
 
 import (
+	"errors"
 	"io"
 	"net"
 	"strings"
 	"time"
 )
+
+var ErrUnregisteredMsg = errors.New("unregistered message")
 
 type Protocol interface {
 	NewCodec(rw io.ReadWriter) (Codec, error)
