@@ -31,6 +31,7 @@ func main() {
 }
 
 func serverSessionLoop(session *link.Session) {
+	log.Printf("recv req from %s", session.RemoteAddr())
 	for {
 		req, err := session.Receive()
 		checkErr(err)

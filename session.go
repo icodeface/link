@@ -2,6 +2,7 @@ package link
 
 import (
 	"errors"
+	"net"
 	"sync"
 	"sync/atomic"
 )
@@ -12,12 +13,13 @@ var SessionBlockedError = errors.New("Session Blocked")
 var globalSessionId uint64
 
 type Session struct {
-	id        uint64
-	codec     Codec
-	manager   *Manager
-	sendChan  chan interface{}
-	recvMutex sync.Mutex
-	sendMutex sync.RWMutex
+	id         uint64
+	remoteAddr net.Addr
+	codec      Codec
+	manager    *Manager
+	sendChan   chan interface{}
+	recvMutex  sync.Mutex
+	sendMutex  sync.RWMutex
 
 	closeFlag          int32
 	closeChan          chan int
@@ -28,16 +30,17 @@ type Session struct {
 	State interface{}
 }
 
-func NewSession(codec Codec, sendChanSize int) *Session {
-	return newSession(nil, codec, sendChanSize)
+func NewSession(remoteAddr net.Addr, codec Codec, sendChanSize int) *Session {
+	return newSession(nil, remoteAddr, codec, sendChanSize)
 }
 
-func newSession(manager *Manager, codec Codec, sendChanSize int) *Session {
+func newSession(manager *Manager, remoteAddr net.Addr, codec Codec, sendChanSize int) *Session {
 	session := &Session{
-		codec:     codec,
-		manager:   manager,
-		closeChan: make(chan int),
-		id:        atomic.AddUint64(&globalSessionId, 1),
+		remoteAddr: remoteAddr,
+		codec:      codec,
+		manager:    manager,
+		closeChan:  make(chan int),
+		id:         atomic.AddUint64(&globalSessionId, 1),
 	}
 	if sendChanSize > 0 {
 		session.sendChan = make(chan interface{}, sendChanSize)
@@ -79,6 +82,10 @@ func (session *Session) Close() error {
 		return err
 	}
 	return SessionClosedError
+}
+
+func (session *Session) RemoteAddr() net.Addr {
+	return session.remoteAddr
 }
 
 func (session *Session) Codec() Codec {

@@ -1,6 +1,9 @@
 package link
 
-import "sync"
+import (
+	"net"
+	"sync"
+)
 
 const sessionMapNum = 32
 
@@ -39,8 +42,8 @@ func (manager *Manager) Dispose() {
 	})
 }
 
-func (manager *Manager) NewSession(codec Codec, sendChanSize int) *Session {
-	session := newSession(manager, codec, sendChanSize)
+func (manager *Manager) NewSession(remoteAddr net.Addr, codec Codec, sendChanSize int) *Session {
+	session := newSession(manager, remoteAddr, codec, sendChanSize)
 	manager.putSession(session)
 	return session
 }
