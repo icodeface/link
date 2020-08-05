@@ -1,6 +1,7 @@
 package link
 
 import (
+	"context"
 	"errors"
 	"io"
 	"net"
@@ -52,6 +53,19 @@ func Dial(network, address string, protocol Protocol, sendChanSize int) (*Sessio
 
 func DialTimeout(network, address string, timeout time.Duration, protocol Protocol, sendChanSize int) (*Session, error) {
 	conn, err := net.DialTimeout(network, address, timeout)
+	if err != nil {
+		return nil, err
+	}
+	codec, err := protocol.NewCodec(conn)
+	if err != nil {
+		return nil, err
+	}
+	return NewSession(conn.RemoteAddr(), codec, sendChanSize), nil
+}
+
+func DialContext(ctx context.Context, network, address string, protocol Protocol, sendChanSize int) (*Session, error) {
+	dialer := net.Dialer{}
+	conn, err := dialer.DialContext(ctx, network, address)
 	if err != nil {
 		return nil, err
 	}
